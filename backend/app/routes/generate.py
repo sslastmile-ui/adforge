@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from ..database import get_db
 from ..models import Brief, CreativeDNA, ChannelAsset
-import openai
+from ..services.ai_service import AIService  # <-- NEW: Import our AI service
 import os
 import json
 import logging
@@ -36,21 +36,17 @@ async def generate_creative(
     if not brief:
         raise HTTPException(404, "Brief not found")
     
-    # Call OpenAI
-    openai.api_key = os.getenv("OPENAI_API_KEY", "your-key-here")
-    
     try:
-        response = openai.chat.completions.create(
-            model="gpt-4-turbo",
-            messages=[
-                {"role": "system", "content": "You are a D2C marketing expert. Generate a Creative DNA with hook, value_prop, cta, and visual_sentiment. Return ONLY valid JSON."},
-                {"role": "user", "content": f"Product: {brief.product_name}\nOffer: {brief.offer}\nAudience: {brief.target_audience}"}
-            ],
-            temperature=0.8,
-            response_format={"type": "json_object"}
+        # ============================================
+        # NEW: Use OpenRouter instead of OpenAI
+        # ============================================
+        ai_service = AIService()
+        dna_data = ai_service.generate_creative_dna(
+            product_name=brief.product_name,
+            offer=brief.offer,
+            target_audience=brief.target_audience,
+            brand_voice=brief.brand_voice.get("tone", "") if brief.brand_voice else ""
         )
-        
-        dna_data = json.loads(response.choices[0].message.content)
         
         # Save DNA
         dna = CreativeDNA(
