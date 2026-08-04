@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test</h1>
+    <button onclick="testAPI()">Test Backend</button>
+    <p id="result"></p>
+
+    <script>
+        async function testAPI() {
+            const result = document.getElementById('result');
+            result.textContent = 'Testing...';
+
+            try {
+                const response = await fetch('http://localhost:8000/api/health');
+                const data = await response.json();
+                result.textContent = '✅ SUCCESS: ' + JSON.stringify(data);
+            } catch (error) {
+                result.textContent = '❌ FAILED: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
