@@ -9,7 +9,7 @@ class AIService:
     def __init__(self):
         # Use Google Gemini API Key from environment
         self.api_key = os.getenv("GEMINI_API_KEY")
-        self.base_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent"
+        self.model = "gemini-2.0-flash-exp"
         
     def generate_creative_dna(self, product_name, offer, target_audience, brand_voice=""):
         """Generate Creative DNA using Google Gemini (100% Free)"""
@@ -30,24 +30,37 @@ class AIService:
         """
         
         try:
-            response = requests.post(
-                f"{self.base_url}?key={self.api_key}",
-                headers={"Content-Type": "application/json"},
-                json={
-                    "contents": [{"parts": [{"text": prompt}]}],
-                    "generationConfig": {
-                        "temperature": 0.8,
-                        "maxOutputTokens": 1000,
-                        "responseMimeType": "application/json"
+            # Correct Gemini API URL with full path and key in URL
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
+            
+            # Correct request body format for Gemini API
+            payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": prompt}
+                        ]
                     }
-                },
+                ],
+                "generationConfig": {
+                    "temperature": 0.8,
+                    "maxOutputTokens": 1000,
+                    "responseMimeType": "application/json"
+                }
+            }
+            
+            response = requests.post(
+                url,
+                headers={"Content-Type": "application/json"},
+                json=payload,
                 timeout=60
             )
             
             if response.status_code == 200:
                 result = response.json()
-                content = result["candidates"][0]["content"]["parts"][0]["text"]
-                return json.loads(content)
+                # Extract the text from Gemini's response format
+                text = result["candidates"][0]["content"]["parts"][0]["text"]
+                return json.loads(text)
             else:
                 logger.error(f"Gemini API error: {response.status_code} - {response.text}")
                 return self._fallback_dna(product_name, offer)
@@ -57,9 +70,10 @@ class AIService:
             return self._fallback_dna(product_name, offer)
     
     def _fallback_dna(self, product_name, offer):
+        """Fallback DNA if API fails"""
         return {
             "hook": f"Discover the Best {product_name}",
             "value_prop": offer,
             "cta": "Shop Now",
-            "visual_sentiment": "Modern, clean, lifestyle photography"
+            "visual_sentiment": "Modern, clean, lifestyle photography with warm lighting"
         }
