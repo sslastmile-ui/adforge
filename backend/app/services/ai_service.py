@@ -10,7 +10,7 @@ class AIService:
         # Use OpenRouter API (or fallback to OpenAI)
         self.api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
         self.base_url = "https://openrouter.ai/api/v1/chat/completions"
-        self.model = os.getenv("AI_MODEL", "openai/gpt-4o")
+        self.model = os.getenv("AI_MODEL", "meta-llama/llama-4-70b-instruct")
         
     def generate_creative_dna(self, product_name, offer, target_audience, brand_voice=""):
         """Generate Creative DNA using OpenRouter"""
