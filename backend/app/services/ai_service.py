@@ -9,8 +9,8 @@ class AIService:
     def __init__(self):
         # Use Google Gemini API Key from environment
         self.api_key = os.getenv("GEMINI_API_KEY")
-        # Use stable, confirmed working model
-        self.model = "gemini-1.5-flash"
+        # Use the most basic, universally available model
+        self.model = "gemini-pro"
         
     def generate_creative_dna(self, product_name, offer, target_audience, brand_voice=""):
         """Generate Creative DNA using Google Gemini (100% Free)"""
@@ -31,7 +31,7 @@ class AIService:
         """
         
         try:
-            # Correct Gemini API URL with stable model
+            # Correct Gemini API URL with gemini-pro
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
             
             payload = {
@@ -45,7 +45,8 @@ class AIService:
                 "generationConfig": {
                     "temperature": 0.8,
                     "maxOutputTokens": 1000,
-                    "responseMimeType": "application/json"
+                    "topP": 0.95,
+                    "topK": 40
                 }
             }
             
