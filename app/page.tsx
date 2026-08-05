@@ -297,7 +297,7 @@ function NewBriefPage({ setShowNewBrief }: { setShowNewBrief: (show: boolean) =>
     setSuccess('')
 
     try {
-      const API_URL = 'http://172.23.161.102:8000'
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://adforce-mc49.onrender.com'
       
       // Step 1: Create the brief
       console.log("Creating brief at:", API_URL + '/api/briefs')
