@@ -9,7 +9,8 @@ class AIService:
     def __init__(self):
         # Use Google Gemini API Key from environment
         self.api_key = os.getenv("GEMINI_API_KEY")
-        self.model = "gemini-2.0-flash-exp"
+        # Use stable, confirmed working model
+        self.model = "gemini-1.5-flash"
         
     def generate_creative_dna(self, product_name, offer, target_audience, brand_voice=""):
         """Generate Creative DNA using Google Gemini (100% Free)"""
@@ -30,10 +31,9 @@ class AIService:
         """
         
         try:
-            # Correct Gemini API URL with full path and key in URL
+            # Correct Gemini API URL with stable model
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
             
-            # Correct request body format for Gemini API
             payload = {
                 "contents": [
                     {
@@ -58,7 +58,6 @@ class AIService:
             
             if response.status_code == 200:
                 result = response.json()
-                # Extract the text from Gemini's response format
                 text = result["candidates"][0]["content"]["parts"][0]["text"]
                 return json.loads(text)
             else:
@@ -70,7 +69,6 @@ class AIService:
             return self._fallback_dna(product_name, offer)
     
     def _fallback_dna(self, product_name, offer):
-        """Fallback DNA if API fails"""
         return {
             "hook": f"Discover the Best {product_name}",
             "value_prop": offer,
