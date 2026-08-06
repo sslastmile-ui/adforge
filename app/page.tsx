@@ -9,7 +9,6 @@ export default function HomePage() {
   const [page, setPage] = useState('landing')
   const [mounted, setMounted] = useState(false)
 
-  // Fix hydration error - only render after mount
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -189,13 +188,32 @@ function SignupPage({ setPage }: { setPage: (page: string) => void }) {
 }
 
 // ============================================
-// 4. DASHBOARD PAGE
+// 4. DASHBOARD PAGE (UPDATED - Fetches briefs)
 // ============================================
 function DashboardPage({ setPage }: { setPage: (page: string) => void }) {
   const [showNewBrief, setShowNewBrief] = useState(false)
+  const [briefs, setBriefs] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchBriefs = async () => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://adforce-mc49.onrender.com'
+      const response = await fetch(`${API_URL}/api/briefs`)
+      const data = await response.json()
+      setBriefs(data.briefs || [])
+    } catch (error) {
+      console.error('Failed to fetch briefs:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchBriefs()
+  }, [])
 
   if (showNewBrief) {
-    return <NewBriefPage setShowNewBrief={setShowNewBrief} />
+    return <NewBriefPage setShowNewBrief={setShowNewBrief} onSuccess={fetchBriefs} />
   }
 
   return (
@@ -229,7 +247,7 @@ function DashboardPage({ setPage }: { setPage: (page: string) => void }) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <p className="text-sm text-gray-500">Briefs</p>
-            <p className="text-2xl font-bold">0</p>
+            <p className="text-2xl font-bold">{briefs.length}</p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <p className="text-sm text-gray-500">Creative DNA</p>
@@ -277,9 +295,9 @@ function DashboardPage({ setPage }: { setPage: (page: string) => void }) {
 }
 
 // ============================================
-// 5. NEW BRIEF PAGE (FIXED - WITH LOCALHOST URL)
+// 5. NEW BRIEF PAGE (UPDATED - Calls onSuccess)
 // ============================================
-function NewBriefPage({ setShowNewBrief }: { setShowNewBrief: (show: boolean) => void }) {
+function NewBriefPage({ setShowNewBrief, onSuccess }: { setShowNewBrief: (show: boolean) => void; onSuccess?: () => void }) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     product_name: '',
@@ -299,7 +317,6 @@ function NewBriefPage({ setShowNewBrief }: { setShowNewBrief: (show: boolean) =>
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://adforce-mc49.onrender.com'
       
-      // Step 1: Create the brief
       console.log("Creating brief at:", API_URL + '/api/briefs')
       const briefResponse = await fetch(`${API_URL}/api/briefs`, {
         method: 'POST',
@@ -322,7 +339,6 @@ function NewBriefPage({ setShowNewBrief }: { setShowNewBrief: (show: boolean) =>
       const briefData = await briefResponse.json()
       console.log("Brief created:", briefData)
 
-      // Step 2: Generate creative assets
       console.log("Generating creative assets...")
       const generateResponse = await fetch(`${API_URL}/api/generate`, {
         method: 'POST',
@@ -343,13 +359,17 @@ function NewBriefPage({ setShowNewBrief }: { setShowNewBrief: (show: boolean) =>
       console.log("Generation result:", generateData)
 
       setSuccess('✅ Campaign created successfully! AI is generating your assets.')
+      
+      // Refresh the dashboard
+      if (onSuccess) onSuccess()
+      
       setTimeout(() => {
         setShowNewBrief(false)
       }, 2000)
 
     } catch (err: any) {
       console.error("Error:", err)
-      setError(err.message || 'Something went wrong. Make sure the backend is running on http://localhost:8000')
+      setError(err.message || 'Something went wrong. Make sure the backend is running.')
     } finally {
       setLoading(false)
     }
