@@ -2,9 +2,6 @@
 
 import { useState, useEffect } from 'react'
 
-// ============================================
-// 1. LANDING PAGE COMPONENT
-// ============================================
 export default function HomePage() {
   const [page, setPage] = useState('landing')
   const [mounted, setMounted] = useState(false)
@@ -13,9 +10,7 @@ export default function HomePage() {
     setMounted(true)
   }, [])
 
-  if (!mounted) {
-    return null
-  }
+  if (!mounted) return null
 
   if (page === 'login') return <LoginPage setPage={setPage} />
   if (page === 'signup') return <SignupPage setPage={setPage} />
@@ -63,9 +58,6 @@ export default function HomePage() {
   )
 }
 
-// ============================================
-// 2. LOGIN PAGE
-// ============================================
 function LoginPage({ setPage }: { setPage: (page: string) => void }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -119,9 +111,6 @@ function LoginPage({ setPage }: { setPage: (page: string) => void }) {
   )
 }
 
-// ============================================
-// 3. SIGNUP PAGE
-// ============================================
 function SignupPage({ setPage }: { setPage: (page: string) => void }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -187,20 +176,19 @@ function SignupPage({ setPage }: { setPage: (page: string) => void }) {
   )
 }
 
-// ============================================
-// 4. DASHBOARD PAGE (UPDATED - Fixed API endpoint)
-// ============================================
 function DashboardPage({ setPage }: { setPage: (page: string) => void }) {
   const [showNewBrief, setShowNewBrief] = useState(false)
   const [briefs, setBriefs] = useState([])
   const [loading, setLoading] = useState(true)
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://adforce-mc49.onrender.com'
+
   const fetchBriefs = async () => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://adforce-mc49.onrender.com'
       const response = await fetch(`${API_URL}/api/briefs/`)
       const data = await response.json()
       setBriefs(data.briefs || [])
+      console.log('Briefs with DNA:', data.briefs)
     } catch (error) {
       console.error('Failed to fetch briefs:', error)
     } finally {
@@ -222,10 +210,7 @@ function DashboardPage({ setPage }: { setPage: (page: string) => void }) {
         <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           AdForge
         </span>
-        <button 
-          onClick={() => setPage('landing')}
-          className="text-sm text-gray-500 hover:text-gray-900"
-        >
+        <button onClick={() => setPage('landing')} className="text-sm text-gray-500 hover:text-gray-900">
           Logout
         </button>
       </div>
@@ -251,7 +236,7 @@ function DashboardPage({ setPage }: { setPage: (page: string) => void }) {
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <p className="text-sm text-gray-500">Creative DNA</p>
-            <p className="text-2xl font-bold">0</p>
+            <p className="text-2xl font-bold">{briefs.filter(b => b.dna).length}</p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <p className="text-sm text-gray-500">Assets</p>
@@ -263,30 +248,52 @@ function DashboardPage({ setPage }: { setPage: (page: string) => void }) {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-4">
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200">
-            <h3 className="font-semibold text-blue-900">Generate Creative DNA</h3>
-            <p className="text-sm text-blue-700">AI-powered hooks and copy</p>
-            <button 
-              onClick={() => setShowNewBrief(true)}
-              className="mt-3 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"
-            >
-              Start
-            </button>
+        {/* Campaigns List with AI DNA */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          <div className="p-6 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900">Your Campaigns</h2>
           </div>
-          <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200">
-            <h3 className="font-semibold text-purple-900">Publish to Channels</h3>
-            <p className="text-sm text-purple-700">Push to social media</p>
-            <button className="mt-3 bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700">
-              View Assets
-            </button>
-          </div>
-          <div className="bg-gradient-to-r from-green-50 to-green-100 p-6 rounded-xl border border-green-200">
-            <h3 className="font-semibold text-green-900">Analytics</h3>
-            <p className="text-sm text-green-700">Track performance</p>
-            <button className="mt-3 bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700">
-              View
-            </button>
+          <div className="divide-y divide-gray-100">
+            {briefs.length === 0 ? (
+              <div className="p-6 text-center text-gray-500">
+                No campaigns yet. Create your first one!
+              </div>
+            ) : (
+              briefs.map((brief: any) => (
+                <div key={brief.id} className="p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <h3 className="font-medium text-gray-900">{brief.product_name}</h3>
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          brief.status === 'approved' ? 'bg-green-100 text-green-700' :
+                          brief.status === 'processing' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {brief.status || 'draft'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500">Offer: {brief.offer}</p>
+                      <p className="text-sm text-gray-500">Audience: {brief.target_audience}</p>
+                      
+                      {brief.dna ? (
+                        <div className="mt-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                          <p className="text-sm font-medium text-blue-900">🎯 Hook: {brief.dna.hook || 'Generating...'}</p>
+                          <p className="text-sm text-blue-700">💡 Value Prop: {brief.dna.value_prop || 'Generating...'}</p>
+                          <p className="text-sm text-blue-700">📢 CTA: {brief.dna.cta || 'Generating...'}</p>
+                          <p className="text-sm text-blue-700">🖼️ Visual: {brief.dna.visual_sentiment || 'Generating...'}</p>
+                          <p className="text-xs text-blue-500 mt-1">Status: {brief.dna.status || 'pending'}</p>
+                        </div>
+                      ) : (
+                        <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                          <p className="text-sm text-gray-500">⏳ AI is generating creative DNA...</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -294,9 +301,6 @@ function DashboardPage({ setPage }: { setPage: (page: string) => void }) {
   )
 }
 
-// ============================================
-// 5. NEW BRIEF PAGE
-// ============================================
 function NewBriefPage({ setShowNewBrief, onSuccess }: { setShowNewBrief: (show: boolean) => void; onSuccess?: () => void }) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -308,6 +312,8 @@ function NewBriefPage({ setShowNewBrief, onSuccess }: { setShowNewBrief: (show: 
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://adforce-mc49.onrender.com'
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -315,9 +321,6 @@ function NewBriefPage({ setShowNewBrief, onSuccess }: { setShowNewBrief: (show: 
     setSuccess('')
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://adforce-mc49.onrender.com'
-      
-      console.log("Creating brief at:", API_URL + '/api/briefs/')
       const briefResponse = await fetch(`${API_URL}/api/briefs/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -337,9 +340,7 @@ function NewBriefPage({ setShowNewBrief, onSuccess }: { setShowNewBrief: (show: 
       }
 
       const briefData = await briefResponse.json()
-      console.log("Brief created:", briefData)
 
-      console.log("Generating creative assets...")
       const generateResponse = await fetch(`${API_URL}/api/generate/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -355,20 +356,17 @@ function NewBriefPage({ setShowNewBrief, onSuccess }: { setShowNewBrief: (show: 
         throw new Error(errorData.detail || 'Failed to generate assets')
       }
 
-      const generateData = await generateResponse.json()
-      console.log("Generation result:", generateData)
+      setSuccess('✅ Campaign created successfully! AI is generating content.')
 
-      setSuccess('✅ Campaign created successfully! AI is generating your assets.')
-      
       if (onSuccess) onSuccess()
-      
+
       setTimeout(() => {
         setShowNewBrief(false)
       }, 2000)
 
     } catch (err: any) {
       console.error("Error:", err)
-      setError(err.message || 'Something went wrong. Make sure the backend is running.')
+      setError(err.message || 'Something went wrong.')
     } finally {
       setLoading(false)
     }
