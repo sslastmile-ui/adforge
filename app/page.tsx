@@ -188,7 +188,7 @@ function SignupPage({ setPage }: { setPage: (page: string) => void }) {
 }
 
 // ============================================
-// 4. DASHBOARD PAGE (UPDATED - Fetches briefs)
+// 4. DASHBOARD PAGE (UPDATED - Fixed API endpoint)
 // ============================================
 function DashboardPage({ setPage }: { setPage: (page: string) => void }) {
   const [showNewBrief, setShowNewBrief] = useState(false)
@@ -198,7 +198,7 @@ function DashboardPage({ setPage }: { setPage: (page: string) => void }) {
   const fetchBriefs = async () => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://adforce-mc49.onrender.com'
-      const response = await fetch(`${API_URL}/api/briefs`)
+      const response = await fetch(`${API_URL}/api/briefs/`)
       const data = await response.json()
       setBriefs(data.briefs || [])
     } catch (error) {
@@ -295,7 +295,7 @@ function DashboardPage({ setPage }: { setPage: (page: string) => void }) {
 }
 
 // ============================================
-// 5. NEW BRIEF PAGE (UPDATED - Calls onSuccess)
+// 5. NEW BRIEF PAGE
 // ============================================
 function NewBriefPage({ setShowNewBrief, onSuccess }: { setShowNewBrief: (show: boolean) => void; onSuccess?: () => void }) {
   const [loading, setLoading] = useState(false)
@@ -317,8 +317,8 @@ function NewBriefPage({ setShowNewBrief, onSuccess }: { setShowNewBrief: (show: 
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://adforce-mc49.onrender.com'
       
-      console.log("Creating brief at:", API_URL + '/api/briefs')
-      const briefResponse = await fetch(`${API_URL}/api/briefs`, {
+      console.log("Creating brief at:", API_URL + '/api/briefs/')
+      const briefResponse = await fetch(`${API_URL}/api/briefs/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -340,7 +340,7 @@ function NewBriefPage({ setShowNewBrief, onSuccess }: { setShowNewBrief: (show: 
       console.log("Brief created:", briefData)
 
       console.log("Generating creative assets...")
-      const generateResponse = await fetch(`${API_URL}/api/generate`, {
+      const generateResponse = await fetch(`${API_URL}/api/generate/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -360,7 +360,6 @@ function NewBriefPage({ setShowNewBrief, onSuccess }: { setShowNewBrief: (show: 
 
       setSuccess('✅ Campaign created successfully! AI is generating your assets.')
       
-      // Refresh the dashboard
       if (onSuccess) onSuccess()
       
       setTimeout(() => {
