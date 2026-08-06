@@ -1,90 +1,52 @@
 import os
 import json
 import logging
-from google import genai
+import requests
 
 logger = logging.getLogger(__name__)
-
 
 class AIService:
     def __init__(self):
         self.api_key = os.getenv("GEMINI_API_KEY")
-        self.model = "gemini-3.6-flash"
-
-        if not self.api_key:
-            raise ValueError("GEMINI_API_KEY not found")
-
-        self.client = genai.Client(api_key=self.api_key)
-
-    def generate_creative_dna(
-        self,
-        product_name,
-        offer,
-        target_audience,
-        brand_voice=""
-    ):
-        """
-        Generate Creative DNA using Gemini SDK
-        """
-
+        self.model = "gemini-pro"
+        
+    def generate_creative_dna(self, product_name, offer, target_audience, brand_voice=""):
         prompt = f"""
-You are an expert D2C Marketing Strategist.
+        You are a D2C marketing expert. Generate a Creative DNA with these exact fields:
+        - hook: Attention-grabbing headline (under 10 words)
+        - value_prop: Main benefit for the customer
+        - cta: Clear call-to-action
+        - visual_sentiment: Description for image generation
 
-Generate ONLY valid JSON.
+        Product: {product_name}
+        Offer: {offer}
+        Target Audience: {target_audience}
+        Brand Voice: {brand_voice or "Professional"}
 
-Required JSON format:
-
-{{
-    "hook":"",
-    "value_prop":"",
-    "cta":"",
-    "visual_sentiment":""
-}}
-
-Product:
-{product_name}
-
-Offer:
-{offer}
-
-Target Audience:
-{target_audience}
-
-Brand Voice:
-{brand_voice or "Professional"}
-
-Do not return markdown.
-Do not return explanation.
-Return JSON only.
-"""
-
+        Return ONLY valid JSON.
+        """
+        
         try:
-
-            response = self.client.models.generate_content(
-                model=self.model,
-                contents=prompt
-            )
-
-            text = response.text.strip()
-
-            # Remove markdown if Gemini adds it
-            text = text.replace("```json", "")
-            text = text.replace("```", "")
-            text = text.strip()
-
-            return json.loads(text)
-
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0.8, "maxOutputTokens": 1000}
+            }
+            response = requests.post(url, headers={"Content-Type": "application/json"}, json=payload, timeout=60)
+            
+            if response.status_code == 200:
+                result = response.json()
+                text = result["candidates"][0]["content"]["parts"][0]["text"]
+                return json.loads(text)
+            else:
+                return self._fallback_dna(product_name, offer)
         except Exception as e:
-
-            logger.error(f"Gemini Error: {e}")
-
             return self._fallback_dna(product_name, offer)
-
+    
     def _fallback_dna(self, product_name, offer):
-
         return {
             "hook": f"Discover the Best {product_name}",
             "value_prop": offer,
             "cta": "Shop Now",
-            "visual_sentiment": "Modern clean lifestyle photography"
+            "visual_sentiment": "Modern, clean, lifestyle photography"
         }
