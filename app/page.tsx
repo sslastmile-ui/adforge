@@ -176,10 +176,14 @@ function SignupPage({ setPage }: { setPage: (page: string) => void }) {
   )
 }
 
+// ============================================
+// 4. DASHBOARD PAGE - SIDE NAV LAYOUT (Like OrbitR)
+// ============================================
 function DashboardPage({ setPage }: { setPage: (page: string) => void }) {
   const [showNewBrief, setShowNewBrief] = useState(false)
   const [briefs, setBriefs] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('campaigns')
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://adforce-mc49.onrender.com'
 
@@ -188,7 +192,6 @@ function DashboardPage({ setPage }: { setPage: (page: string) => void }) {
       const response = await fetch(`${API_URL}/api/briefs/`)
       const data = await response.json()
       setBriefs(data.briefs || [])
-      console.log('Briefs with DNA:', data.briefs)
     } catch (error) {
       console.error('Failed to fetch briefs:', error)
     } finally {
@@ -204,68 +207,121 @@ function DashboardPage({ setPage }: { setPage: (page: string) => void }) {
     return <NewBriefPage setShowNewBrief={setShowNewBrief} onSuccess={fetchBriefs} />
   }
 
+  const briefsWithDNA = briefs.filter((b: any) => b.dna && b.dna.hook).length
+
+  // Sidebar Navigation Items
+  const navItems = [
+    { id: 'campaigns', label: 'Campaigns', icon: '📊' },
+    { id: 'creative', label: 'Creative DNA', icon: '🧬' },
+    { id: 'assets', label: 'Channel Assets', icon: '📱' },
+    { id: 'analytics', label: 'Analytics', icon: '📈' },
+    { id: 'settings', label: 'Settings', icon: '⚙️' },
+  ]
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200 px-4 py-4 flex justify-between items-center">
-        <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          AdForge
-        </span>
-        <button onClick={() => setPage('landing')} className="text-sm text-gray-500 hover:text-gray-900">
-          Logout
-        </button>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar - Like OrbitR */}
+      <div className="w-64 bg-white border-r border-gray-200 fixed top-0 left-0 bottom-0 overflow-y-auto">
+        <div className="p-6 border-b border-gray-100">
+          <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            AdForge
+          </span>
+        </div>
+
+        <nav className="p-4 space-y-1">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === item.id
+                  ? 'bg-blue-50 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <span className="mr-3">{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+          
+          <hr className="my-4 border-gray-100" />
+          
+          <button 
+            onClick={() => setPage('landing')}
+            className="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <span className="mr-3">🚪</span>
+            Logout
+          </button>
+        </nav>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+      {/* Main Content */}
+      <div className="ml-64 flex-1">
+        {/* Top Bar */}
+        <div className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center sticky top-0 z-10">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-500">Welcome back! Create a new campaign to get started.</p>
+            <h1 className="text-xl font-semibold text-gray-900">Campaigns</h1>
+            <p className="text-sm text-gray-500">Manage your AI-generated marketing campaigns</p>
           </div>
           <button
             onClick={() => setShowNewBrief(true)}
-            className="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-blue-700 w-full sm:w-auto"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center"
           >
-            + New Campaign Brief
+            <span className="mr-2">+</span>
+            New Campaign
           </button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-sm text-gray-500">Briefs</p>
+        {/* Stats Cards */}
+        <div className="px-8 pt-6 grid grid-cols-4 gap-4">
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-xs text-gray-500 uppercase tracking-wider">Total Campaigns</p>
             <p className="text-2xl font-bold">{briefs.length}</p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-sm text-gray-500">Creative DNA</p>
-            <p className="text-2xl font-bold">{briefs.filter(b => b.dna).length}</p>
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-xs text-gray-500 uppercase tracking-wider">Creative DNA</p>
+            <p className="text-2xl font-bold">{briefsWithDNA}</p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-sm text-gray-500">Assets</p>
-            <p className="text-2xl font-bold">0</p>
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-xs text-gray-500 uppercase tracking-wider">Assets Ready</p>
+            <p className="text-2xl font-bold">{briefsWithDNA * 2}</p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-sm text-gray-500">Live Campaigns</p>
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+            <p className="text-xs text-gray-500 uppercase tracking-wider">Live</p>
             <p className="text-2xl font-bold">0</p>
           </div>
         </div>
 
-        {/* Campaigns List with AI DNA */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="p-6 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">Your Campaigns</h2>
+        {/* Campaigns Grid */}
+        <div className="px-8 py-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-sm font-medium text-gray-700">All Campaigns</h2>
+            <span className="text-xs text-gray-400">{briefs.length} campaigns</span>
           </div>
-          <div className="divide-y divide-gray-100">
-            {briefs.length === 0 ? (
-              <div className="p-6 text-center text-gray-500">
-                No campaigns yet. Create your first one!
-              </div>
-            ) : (
-              briefs.map((brief: any) => (
-                <div key={brief.id} className="p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <h3 className="font-medium text-gray-900">{brief.product_name}</h3>
-                        <span className={`px-2 py-1 text-xs rounded-full ${
+
+          {briefs.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-16 text-center">
+              <div className="text-4xl mb-4">🚀</div>
+              <p className="text-gray-500 font-medium">No campaigns yet</p>
+              <p className="text-sm text-gray-400 mt-1">Create your first campaign to get started</p>
+              <button
+                onClick={() => setShowNewBrief(true)}
+                className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg text-sm hover:bg-blue-700"
+              >
+                Create Campaign
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {briefs.map((brief: any) => (
+                <div key={brief.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                  {/* Campaign Header */}
+                  <div className="p-5 border-b border-gray-100 flex justify-between items-start">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-gray-900">{brief.product_name}</h3>
+                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
                           brief.status === 'approved' ? 'bg-green-100 text-green-700' :
                           brief.status === 'processing' ? 'bg-yellow-100 text-yellow-700' :
                           'bg-gray-100 text-gray-700'
@@ -273,34 +329,86 @@ function DashboardPage({ setPage }: { setPage: (page: string) => void }) {
                           {brief.status || 'draft'}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500">Offer: {brief.offer}</p>
-                      <p className="text-sm text-gray-500">Audience: {brief.target_audience}</p>
-                      
-                      {brief.dna ? (
-                        <div className="mt-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                          <p className="text-sm font-medium text-blue-900">🎯 Hook: {brief.dna.hook || 'Generating...'}</p>
-                          <p className="text-sm text-blue-700">💡 Value Prop: {brief.dna.value_prop || 'Generating...'}</p>
-                          <p className="text-sm text-blue-700">📢 CTA: {brief.dna.cta || 'Generating...'}</p>
-                          <p className="text-sm text-blue-700">🖼️ Visual: {brief.dna.visual_sentiment || 'Generating...'}</p>
-                          <p className="text-xs text-blue-500 mt-1">Status: {brief.dna.status || 'pending'}</p>
+                      <div className="flex items-center gap-4 mt-1">
+                        <span className="text-xs text-gray-400">{brief.offer}</span>
+                        <span className="text-xs text-gray-400">•</span>
+                        <span className="text-xs text-gray-400">{brief.target_audience}</span>
+                      </div>
+                    </div>
+                    <button className="text-gray-400 hover:text-gray-600">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* DNA Content */}
+                  <div className="p-5">
+                    {brief.dna && brief.dna.hook ? (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                            <p className="text-xs font-medium text-blue-900 uppercase tracking-wider">Hook</p>
+                            <p className="text-sm text-blue-800 mt-1">{brief.dna.hook}</p>
+                          </div>
+                          <div className="bg-purple-50 rounded-lg p-3 border border-purple-100">
+                            <p className="text-xs font-medium text-purple-900 uppercase tracking-wider">Value Prop</p>
+                            <p className="text-sm text-purple-800 mt-1">{brief.dna.value_prop}</p>
+                          </div>
                         </div>
-                      ) : (
-                        <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                          <p className="text-sm text-gray-500">⏳ AI is generating creative DNA...</p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-green-50 rounded-lg p-3 border border-green-100">
+                            <p className="text-xs font-medium text-green-900 uppercase tracking-wider">CTA</p>
+                            <p className="text-sm text-green-800 mt-1">{brief.dna.cta}</p>
+                          </div>
+                          <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-100">
+                            <p className="text-xs font-medium text-yellow-900 uppercase tracking-wider">Visual</p>
+                            <p className="text-sm text-yellow-800 mt-1">{brief.dna.visual_sentiment}</p>
+                          </div>
                         </div>
-                      )}
+
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          <span className="px-3 py-1 bg-pink-100 text-pink-700 text-xs rounded-full">Instagram</span>
+                          <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Facebook</span>
+                          <span className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full">Google</span>
+                          <span className="px-3 py-1 bg-red-100 text-red-700 text-xs rounded-full">LinkedIn</span>
+                          <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">Pinterest</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-6">
+                        <div className="animate-pulse flex flex-col items-center">
+                          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                          <p className="text-sm text-gray-400 mt-2">AI generating creative DNA...</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Footer Actions */}
+                  <div className="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-between items-center">
+                    <span className="text-xs text-gray-400">
+                      {new Date(brief.created_at).toLocaleDateString()}
+                    </span>
+                    <div className="flex gap-3">
+                      <button className="text-xs text-gray-500 hover:text-gray-700 font-medium">Edit</button>
+                      <button className="text-xs text-blue-600 hover:text-blue-800 font-medium">Publish</button>
+                      <button className="text-xs text-gray-400 hover:text-gray-600 font-medium">Duplicate</button>
                     </div>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
   )
 }
 
+// ============================================
+// 5. NEW BRIEF PAGE
+// ============================================
 function NewBriefPage({ setShowNewBrief, onSuccess }: { setShowNewBrief: (show: boolean) => void; onSuccess?: () => void }) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -347,7 +455,7 @@ function NewBriefPage({ setShowNewBrief, onSuccess }: { setShowNewBrief: (show: 
         body: JSON.stringify({
           brief_id: briefData.id,
           tenant_id: 'test-tenant',
-          channels: ['instagram', 'facebook']
+          channels: ['instagram', 'facebook', 'google', 'linkedin', 'pinterest']
         })
       })
 
