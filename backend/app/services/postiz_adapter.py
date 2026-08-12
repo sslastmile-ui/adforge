@@ -1,0 +1,1 @@
+"# Postiz Social Publishing Adapter" 
