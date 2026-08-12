@@ -31,4 +31,4 @@ def health():
     return {"status": "healthy", "service": "AdForge API"}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="172.23.161.102", port=8000)
+    uvicorn.run(app, host="10.10.11.73", port=8000)
