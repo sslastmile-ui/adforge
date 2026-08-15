@@ -185,7 +185,7 @@ function DashboardPage({ setPage }: { setPage: (page: string) => void }) {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('campaigns')
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://adforce-mc49.onrender.com'
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://adforge-backend-42s6.onrender.com'
 
   const fetchBriefs = async () => {
     try {
@@ -420,7 +420,7 @@ function NewBriefPage({ setShowNewBrief, onSuccess }: { setShowNewBrief: (show: 
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://adforce-mc49.onrender.com'
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://adforge-backend-42s6.onrender.com'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
