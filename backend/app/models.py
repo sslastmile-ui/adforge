@@ -47,3 +47,12 @@ class ChannelAsset(Base):
     status = Column(String, default="draft")
     published_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class KhadakxEvent(Base):
+    __tablename__ = "khadakx_events"
+    event_id = Column(String, primary_key=True)
+    event_type = Column(String, nullable=False)
+    business_id = Column(String, nullable=False, index=True)
+    contract_version = Column(String, default="1.3")
+    payload = Column(JSON, nullable=False)
+    received_at = Column(DateTime, default=datetime.utcnow)
